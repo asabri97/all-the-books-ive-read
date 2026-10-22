@@ -2,7 +2,7 @@
 
 This is my collection: all the books I've read. Pick a category and they're sorted A–Z by the author's last name. Click a book to read a short description.
 
-![The shelf drifting past](docs/shelf.gif)
+![Browsing the shelf and opening a book](docs/demo.webp)
 
 ## Run it
 
