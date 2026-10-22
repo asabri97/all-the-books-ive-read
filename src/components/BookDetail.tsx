@@ -12,11 +12,16 @@ function prefersReducedMotion(): boolean {
 function computePose(rect: SpineRect) {
   const vp = { w: window.innerWidth, h: window.innerHeight };
   const narrow = vp.w < 720;
-  const coverH = narrow ? vp.h * 0.42 : Math.min(vp.h * 0.6, 480);
+  const margin = 28;
+  const coverH = narrow ? Math.min(vp.h * 0.34, 340) : Math.min(vp.h * 0.62, 520);
   const coverW = coverH * 0.66;
-  const targetLeft = narrow ? Math.max(20, (vp.w - coverW) / 2) : Math.min(Math.max(48, vp.w * 0.1), 160);
-  const targetTop = narrow ? 28 : Math.max(36, (vp.h - coverH) / 2 - 12);
-  return { coverW, coverH, targetLeft, targetTop, narrow, vp, from: rect };
+  const targetLeft = narrow ? Math.max(margin, (vp.w - coverW) / 2) : Math.min(Math.max(40, vp.w * 0.08), 120);
+  const targetTop = narrow ? 24 : Math.max(32, (vp.h - coverH) / 2 - 8);
+  const panelLeft = narrow ? margin : targetLeft + coverW + 36;
+  const panelWidth = Math.max(240, vp.w - panelLeft - margin);
+  const panelTop = narrow ? targetTop + coverH + 16 : targetTop;
+  const panelMaxHeight = Math.max(200, vp.h - panelTop - margin);
+  return { coverW, coverH, targetLeft, targetTop, panelLeft, panelWidth, panelTop, panelMaxHeight, narrow, vp, from: rect };
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -99,18 +104,12 @@ export function BookDetail({
   const transition = prefersReducedMotion()
     ? "none"
     : "left 900ms cubic-bezier(0.16, 1, 0.3, 1), top 900ms cubic-bezier(0.16, 1, 0.3, 1), width 900ms cubic-bezier(0.16, 1, 0.3, 1), height 900ms cubic-bezier(0.16, 1, 0.3, 1)";
-  const panelStyle: CSSProperties = pose.narrow
-    ? {
-        left: 16,
-        right: 16,
-        top: pose.targetTop + pose.coverH + 16,
-        width: "auto",
-      }
-    : {
-        left: pose.targetLeft + pose.coverW + 36,
-        top: pose.targetTop,
-        width: Math.min(440, Math.max(240, pose.vp.w - pose.targetLeft - pose.coverW - 72)),
-      };
+  const panelStyle: CSSProperties = {
+    left: pose.panelLeft,
+    top: pose.panelTop,
+    width: pose.panelWidth,
+    maxHeight: pose.panelMaxHeight,
+  };
 
   const meta = [book.year || null, book.publisher || null].filter(Boolean).join(" · ");
 
@@ -146,7 +145,7 @@ export function BookDetail({
         )}
       </div>
       <aside
-        className="fixed z-[3] max-h-[70vh] overflow-y-auto border border-border bg-card p-6 shadow-[0_30px_80px_-28px_rgba(0,0,0,0.75)] sm:p-8"
+        className="fixed z-[3] min-w-0 overflow-x-hidden overflow-y-auto border border-border bg-card p-6 shadow-[0_30px_80px_-28px_rgba(0,0,0,0.75)] sm:p-8"
         style={{
           ...panelStyle,
           opacity: out ? 1 : 0,
@@ -159,10 +158,10 @@ export function BookDetail({
         <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
           {book.recommender ? `Recommended by ${book.recommender}` : book.finished ? `Finished ${book.finished}` : "On the shelf"}
         </p>
-        <h2 className="mt-3 font-display text-4xl leading-[0.95] font-extrabold tracking-tight text-balance sm:text-5xl">{book.title}</h2>
-        {book.author && <p className="mt-3 font-sans text-lg">{book.author}</p>}
-        {meta && <p className="mt-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">{meta}</p>}
-        {book.blurb && <p className="mt-5 max-w-prose font-sans text-[15px] leading-relaxed font-light text-foreground/80">{book.blurb}</p>}
+        <h2 className="mt-3 font-display text-4xl leading-tight font-bold tracking-tight wrap-break-word sm:text-5xl">{book.title}</h2>
+        {book.author && <p className="mt-3 font-sans text-lg wrap-break-word">{book.author}</p>}
+        {meta && <p className="mt-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase wrap-break-word">{meta}</p>}
+        {book.blurb && <p className="mt-5 font-sans text-base leading-relaxed font-light wrap-break-word text-foreground/80">{book.blurb}</p>}
         <div className="mt-5">
           <Stars rating={book.rating} />
         </div>
@@ -182,13 +181,6 @@ export function BookDetail({
             disabled={!hasNeighbors}
           >
             Next
-          </button>
-          <button
-            type="button"
-            className="border border-foreground bg-foreground px-3 py-2 font-mono text-[10px] tracking-[0.18em] text-background uppercase"
-            onClick={retract}
-          >
-            Shelve it
           </button>
         </div>
       </aside>
