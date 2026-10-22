@@ -514,7 +514,7 @@ with open(path, newline="", encoding="utf-8") as f:
             if name:
                 names.append(name)
         try:
-            rating = int(row.get("My Rating") or 0)
+            rating = int(float(row.get("My Rating") or 0))
         except Exception:
             rating = 0
         rows.append({
