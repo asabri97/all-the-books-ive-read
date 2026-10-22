@@ -24,16 +24,30 @@ function computePose(rect: SpineRect) {
   return { coverW, coverH, targetLeft, targetTop, panelLeft, panelWidth, panelTop, panelMaxHeight, narrow, vp, from: rect };
 }
 
-function Stars({ rating }: { rating: number }) {
-  if (!rating) {
-    return <p className="font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">Unrated</p>;
-  }
+const MARK_HEIGHT = ["h-2", "h-3", "h-4", "h-5", "h-6"];
+
+function RatingMark({ rating }: { rating: number }) {
   const filled = Math.max(0, Math.min(5, Math.round(rating)));
   return (
-    <p className="font-mono text-[14px] tracking-[0.22em] text-primary" aria-label={`${filled} out of 5`}>
-      {"★★★★★".slice(0, filled)}
-      <span className="text-foreground/25">{"★★★★★".slice(filled)}</span>
-    </p>
+    <div className="flex items-end gap-3" aria-label={filled ? `${filled} out of 5` : "Unrated"}>
+      <span className="font-display text-3xl leading-none font-bold tracking-tight text-primary tabular-nums">
+        {filled ? String(filled).padStart(2, "0") : "—"}
+      </span>
+      <span className="flex items-end gap-[5px] pb-1" aria-hidden>
+        {MARK_HEIGHT.map((height, index) => {
+          const on = index < filled;
+          return (
+            <span
+              key={height}
+              className={`block w-[3px] ${height} ${on ? "bg-primary shadow-[0_0_12px_var(--primary)]" : "bg-border"}`}
+            />
+          );
+        })}
+      </span>
+      <span className="pb-1 font-sans text-[10px] font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+        {filled ? "Rated" : "Unrated"}
+      </span>
+    </div>
   );
 }
 
@@ -163,7 +177,7 @@ export function BookDetail({
         {meta && <p className="mt-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase wrap-break-word">{meta}</p>}
         {book.blurb && <p className="mt-5 font-sans text-base leading-relaxed font-light wrap-break-word text-foreground/80">{book.blurb}</p>}
         <div className="mt-5">
-          <Stars rating={book.rating} />
+          <RatingMark rating={book.rating} />
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
           <button

@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { derivePhysical, fallbackPalette, paletteFromPixels } from "../src/lib/openLibrary";
 
-const CSV = "/Users/abrish/Downloads/goodreads_library_export.csv";
+const CSV = process.argv[2];
 const ROOT = new URL("..", import.meta.url).pathname;
 const CACHE = "/tmp/goodreads-ol-cache.json";
 const COVER_DIR = "/tmp/goodreads-covers";
@@ -316,6 +316,10 @@ function readRgba(path: string): { width: number; height: number; pixels: Uint8A
 }
 
 async function main() {
+  if (!CSV) {
+    console.error("Usage: npx tsx scripts/import-goodreads.ts path/to/goodreads_library_export.csv");
+    process.exit(1);
+  }
   const rows = JSON.parse(await run("python3", ["-c", pythonRows()])) as Row[];
   mkdirSync(COVER_DIR, { recursive: true });
   mkdirSync(RGBA_DIR, { recursive: true });
