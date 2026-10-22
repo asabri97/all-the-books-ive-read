@@ -54,12 +54,14 @@ describe("selectShelf", () => {
     expect(selectShelf(books, "Fiction", ["c", "b", "a", "missing"])?.map((book) => book.id)).toEqual(["c", "a"]);
   });
 
-  it("sorts a genre shelf by author, then title, with blank authors last", () => {
+  it("sorts a genre shelf by author last name, then title, with blank authors last", () => {
     const shelf = [
       sample("zora", "Zebra", { author: "Zora Neale", genres: ["Fiction"] }),
       sample("beta", "Beta", { author: "Ada Lovelace", genres: ["Fiction"] }),
       sample("alpha", "Alpha", { author: "ada lovelace", genres: ["Fiction"] }),
       sample("beatles", "Songs", { author: "The Beatles", genres: ["Fiction"] }),
+      sample("sandy", "Mistborn", { author: "Brandon Sanderson", genres: ["Fiction"] }),
+      sample("vonnegut", "Slaughterhouse", { author: "Kurt Vonnegut Jr.", genres: ["Fiction"] }),
       sample("blank", "Untitled", { author: "", genres: ["Fiction"] }),
       sample("spaces", "Anonymous", { author: "   ", genres: ["Fiction"] }),
       sample("elsewhere", "Elsewhere", { author: "Aaron", genres: ["Fantasy"] }),
@@ -67,14 +69,36 @@ describe("selectShelf", () => {
     const order = shelf.map((book) => book.id);
 
     expect(selectShelf(shelf, "Fiction", null)?.map((book) => book.id)).toEqual([
+      "beatles",
       "alpha",
       "beta",
-      "beatles",
       "zora",
+      "sandy",
+      "vonnegut",
       "spaces",
       "blank",
     ]);
     expect(shelf.map((book) => book.id)).toEqual(order);
+  });
+
+  it("orders one author's series by number, then other titles A–Z", () => {
+    const shelf = [
+      sample("m2", "The Well of Ascension (Mistborn, #2)", { author: "Brandon Sanderson", genres: ["Fantasy"] }),
+      sample("m3", "The Hero of Ages (Mistborn, #3)", { author: "Brandon Sanderson", genres: ["Fantasy"] }),
+      sample("m1", "Mistborn: The Final Empire (Mistborn, #1)", { author: "Brandon Sanderson", genres: ["Fantasy"] }),
+      sample("other", "Elantris", { author: "Brandon Sanderson", genres: ["Fantasy"] }),
+      sample("vol10", "Saga Vol. 10", { author: "Brian K. Vaughan", genres: ["Fantasy"] }),
+      sample("vol2", "Saga Vol. 2", { author: "Brian K. Vaughan", genres: ["Fantasy"] }),
+    ];
+
+    expect(selectShelf(shelf, "Fantasy", null)?.map((book) => book.id)).toEqual([
+      "other",
+      "m1",
+      "m2",
+      "m3",
+      "vol2",
+      "vol10",
+    ]);
   });
 
   it("keeps search rank ahead of author order", () => {
